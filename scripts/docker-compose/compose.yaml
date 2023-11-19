@@ -1,0 +1,38 @@
+services:
+  cassandra:
+    image: 'cassandra:latest'
+    container_name: 'apachecassandra'
+    deploy:
+      replicas: 1
+      resources:
+        limits: 
+          cpus: '4'
+          memory: 8G
+    environment:
+      - 'CASSANDRA_DC=datacenter1'
+      - 'CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch'
+    ports:
+      - '7000:7000'
+      - '9042:9042'
+      - '9142:9142'
+
+  rabbitmq:
+    image: 'rabbitmq:management'
+    container_name: 'rabbitmq'
+    environment:
+      - 'RABBITMQ_DEFAULT_PASS=secret'
+      - 'RABBITMQ_DEFAULT_USER=myuser'
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+  ticketstream:
+    image: 'danyiandras/ticketstream:latest'
+    restart: always
+    environment:
+      - 'TICKET_STREAM_CASSANDRA_CONTACTPOINT=apachecassandra'
+      - 'TICKET_STREAM_RABBITMQ_HOST=rabbitmq'
+    ports:
+      - '8080:8080'
+    depends_on:
+      - rabbitmq
+      - cassandra
